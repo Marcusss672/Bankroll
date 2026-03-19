@@ -7,61 +7,47 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a0a0f;
-    --surface: #12121a;
-    --surface2: #1a1a26;
-    --border: #2a2a3d;
-    --accent: #00ff88;
-    --accent2: #ff3d6b;
-    --accent3: #ffd700;
-    --text: #e8e8f0;
-    --muted: #6b6b8a;
-    --win: #00ff88;
-    --loss: #ff3d6b;
-    --neutral: #7b7bff;
-    --cell-win: #1a3d2b;
-    --cell-win-b: #2a6644;
-    --cell-loss: #3d1a22;
-    --cell-loss-b: #662a38;
+    --bg:#0a0a0f; --surface:#12121a; --surface2:#1a1a26; --border:#2a2a3d;
+    --accent:#00ff88; --accent2:#ff3d6b; --accent3:#ffd700;
+    --text:#e8e8f0; --muted:#6b6b8a; --win:#00ff88; --loss:#ff3d6b; --neutral:#7b7bff;
+    --cell-win:#1a3d2b; --cell-win-b:#2a6644; --cell-loss:#3d1a22; --cell-loss-b:#662a38;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body { background:var(--bg); color:var(--text); font-family:'Space Grotesk',sans-serif; min-height:100vh; }
-  body::before {
-    content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
-    background: radial-gradient(ellipse 80% 50% at 20% 20%,rgba(0,255,136,.03) 0%,transparent 60%),
-                radial-gradient(ellipse 60% 40% at 80% 80%,rgba(255,61,107,.03) 0%,transparent 60%);
-  }
+  body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background:radial-gradient(ellipse 80% 50% at 20% 20%,rgba(0,255,136,.03) 0%,transparent 60%),
+               radial-gradient(ellipse 60% 40% at 80% 80%,rgba(255,61,107,.03) 0%,transparent 60%); }
   .container { max-width:1280px; margin:0 auto; padding:0 24px; position:relative; z-index:1; }
 
-  /* Header */
   header { border-bottom:1px solid var(--border); padding:18px 0; position:sticky; top:0; background:rgba(10,10,15,.97); backdrop-filter:blur(20px); z-index:100; }
-  .header-inner { display:flex; align-items:center; justify-content:space-between; }
+  .header-inner { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
   .logo { font-family:'Bebas Neue',sans-serif; font-size:1.8rem; letter-spacing:4px; background:linear-gradient(135deg,var(--accent),var(--accent3)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
   .logo span { -webkit-text-fill-color:var(--accent2); }
+  .header-right { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   .bankroll-pill { background:var(--surface2); border:1px solid var(--border); border-radius:100px; padding:7px 18px; font-family:'DM Mono',monospace; font-size:.85rem; display:flex; align-items:center; gap:8px; }
   .dot { width:7px; height:7px; border-radius:50%; background:var(--accent); animation:pulse 2s infinite; }
+  .sync-badge { font-family:'DM Mono',monospace; font-size:.7rem; padding:5px 12px; border-radius:100px; display:flex; align-items:center; gap:6px; border:1px solid var(--border); background:var(--surface2); }
+  .sync-dot { width:6px; height:6px; border-radius:50%; background:var(--muted); transition:background .3s; }
+  .sync-dot.synced { background:var(--win); }
+  .sync-dot.syncing { background:var(--accent3); animation:pulse 1s infinite; }
+  .sync-dot.error { background:var(--loss); }
   @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
 
-  /* Hero */
   .stats-hero { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:16px; overflow:hidden; margin:28px 0; }
   .stat-card { background:var(--surface); padding:22px 20px; position:relative; transition:background .2s; }
   .stat-card:hover { background:var(--surface2); }
   .stat-card::after { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
-  .stat-card.green::after { background:var(--win); }
-  .stat-card.red::after { background:var(--loss); }
-  .stat-card.gold::after { background:var(--accent3); }
+  .stat-card.green::after { background:var(--win); } .stat-card.red::after { background:var(--loss); } .stat-card.gold::after { background:var(--accent3); }
   .stat-label { font-size:.68rem; text-transform:uppercase; letter-spacing:2px; color:var(--muted); margin-bottom:8px; font-family:'DM Mono',monospace; }
   .stat-value { font-family:'Bebas Neue',sans-serif; font-size:2.2rem; letter-spacing:2px; line-height:1; }
-  .stat-value.green { color:var(--win); } .stat-value.red { color:var(--loss); } .stat-value.gold { color:var(--accent3); }
+  .stat-value.green{color:var(--win);} .stat-value.red{color:var(--loss);} .stat-value.gold{color:var(--accent3);}
   .stat-sub { font-size:.74rem; color:var(--muted); margin-top:5px; font-family:'DM Mono',monospace; }
 
-  /* Layout */
   .main-grid { display:grid; grid-template-columns:1fr 360px; gap:24px; margin-bottom:28px; }
   .panel { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
   .panel-header { padding:18px 22px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
   .panel-title { font-family:'Bebas Neue',sans-serif; font-size:1.2rem; letter-spacing:2px; }
 
-  /* Calendar */
   .cal-nav { display:flex; align-items:center; justify-content:space-between; padding:16px 22px; border-bottom:1px solid var(--border); }
   .cal-nav-btn { background:var(--surface2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:6px 14px; cursor:pointer; font-size:1rem; transition:all .15s; }
   .cal-nav-btn:hover { border-color:var(--accent); color:var(--accent); }
@@ -76,44 +62,43 @@
   .cal-cell.today-cell { outline:2px solid var(--accent); outline-offset:-2px; }
   .cal-cell.has-win { background:var(--cell-win); border-color:var(--cell-win-b); cursor:pointer; }
   .cal-cell.has-loss { background:var(--cell-loss); border-color:var(--cell-loss-b); cursor:pointer; }
-  .cal-cell.has-win:hover, .cal-cell.has-loss:hover { filter:brightness(1.25); }
+  .cal-cell.has-win:hover,.cal-cell.has-loss:hover { filter:brightness(1.25); }
   .cal-date { font-size:.78rem; color:var(--muted); font-family:'DM Mono',monospace; line-height:1; margin-bottom:6px; }
-  .cal-cell.has-win .cal-date, .cal-cell.has-loss .cal-date { color:rgba(255,255,255,.45); }
+  .cal-cell.has-win .cal-date,.cal-cell.has-loss .cal-date { color:rgba(255,255,255,.45); }
   .cal-cell.today-cell .cal-date { color:var(--accent); }
   .cal-pnl { font-family:'DM Mono',monospace; font-size:.82rem; font-weight:500; line-height:1.4; }
-  .cal-pnl.win { color:#6dffc0; } .cal-pnl.loss { color:#ff8fa6; }
+  .cal-pnl.win{color:#6dffc0;} .cal-pnl.loss{color:#ff8fa6;}
   .cal-bet-count { position:absolute; bottom:7px; right:9px; font-size:.58rem; font-family:'DM Mono',monospace; color:rgba(255,255,255,.22); }
   .cal-summary { padding:14px 22px; border-top:1px solid var(--border); display:flex; gap:24px; align-items:center; flex-wrap:wrap; }
   .cal-sum-item { display:flex; align-items:center; gap:8px; }
   .cal-sum-label { font-size:.67rem; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); font-family:'DM Mono',monospace; }
   .cal-sum-val { font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:1px; }
 
-  /* Form */
   .form-body { padding:20px; display:flex; flex-direction:column; gap:14px; }
   .form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   .input-group { display:flex; flex-direction:column; gap:5px; }
   .input-label { font-size:.68rem; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); font-family:'DM Mono',monospace; }
-  input, select { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:9px 12px; color:var(--text); font-family:'Space Grotesk',sans-serif; font-size:.88rem; outline:none; transition:border-color .2s; width:100%; }
-  input:focus, select:focus { border-color:var(--accent); }
+  input,select { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:9px 12px; color:var(--text); font-family:'Space Grotesk',sans-serif; font-size:.88rem; outline:none; transition:border-color .2s; width:100%; }
+  input:focus,select:focus { border-color:var(--accent); }
   select option { background:var(--surface); }
   .btn { padding:11px 20px; border-radius:8px; border:none; cursor:pointer; font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:2px; transition:all .2s; width:100%; }
   .btn-win { background:var(--win); color:#000; }
   .btn-win:hover { background:#00e67a; transform:translateY(-1px); box-shadow:0 4px 16px rgba(0,255,136,.3); }
   .btn-loss { background:var(--loss); color:#fff; }
   .btn-loss:hover { background:#e0304f; transform:translateY(-1px); box-shadow:0 4px 16px rgba(255,61,107,.3); }
+  .btn-neutral { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
+  .btn-neutral:hover { border-color:var(--accent); color:var(--accent); }
   .btn-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
 
-  /* Stat rows */
   .stat-row { display:flex; justify-content:space-between; align-items:center; padding:12px 20px; border-bottom:1px solid var(--border); }
   .stat-row:last-child { border-bottom:none; }
   .stat-row-label { font-size:.75rem; color:var(--muted); font-family:'DM Mono',monospace; text-transform:uppercase; letter-spacing:1px; }
   .stat-row-val { font-family:'Bebas Neue',sans-serif; font-size:1.3rem; letter-spacing:1px; }
 
-  /* Summary */
   .summary-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:28px; }
   .mini-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 20px; display:flex; align-items:center; gap:14px; }
   .mini-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; flex-shrink:0; }
-  .icon-green { background:rgba(0,255,136,.1); } .icon-red { background:rgba(255,61,107,.1); } .icon-gold { background:rgba(255,215,0,.1); }
+  .icon-green{background:rgba(0,255,136,.1);} .icon-red{background:rgba(255,61,107,.1);} .icon-gold{background:rgba(255,215,0,.1);}
   .mini-label { font-size:.67rem; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); font-family:'DM Mono',monospace; }
   .mini-val { font-family:'Bebas Neue',sans-serif; font-size:1.5rem; letter-spacing:1px; margin-top:2px; }
 
@@ -139,11 +124,20 @@
   .modal-sum-label { font-size:.62rem; text-transform:uppercase; letter-spacing:1px; color:var(--muted); font-family:'DM Mono',monospace; }
   .modal-sum-val { font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:1px; }
 
-  /* Toast */
+  /* Loading overlay */
+  .loading-screen { position:fixed; inset:0; background:var(--bg); z-index:500; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; transition:opacity .5s; }
+  .loading-screen.hidden { opacity:0; pointer-events:none; }
+  .loading-logo { font-family:'Bebas Neue',sans-serif; font-size:3rem; letter-spacing:6px; background:linear-gradient(135deg,var(--accent),var(--accent3)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .loading-text { font-family:'DM Mono',monospace; font-size:.8rem; color:var(--muted); letter-spacing:2px; }
+  .loading-bar { width:200px; height:2px; background:var(--border); border-radius:2px; overflow:hidden; }
+  .loading-bar-fill { height:100%; background:linear-gradient(90deg,var(--accent),var(--accent3)); border-radius:2px; animation:loadbar 1.5s ease-in-out infinite; }
+  @keyframes loadbar { 0%{width:0%;margin-left:0} 50%{width:60%;margin-left:20%} 100%{width:0%;margin-left:100%} }
+
   .toast { position:fixed; bottom:28px; right:28px; padding:12px 22px; border-radius:10px; font-family:'DM Mono',monospace; font-size:.82rem; z-index:999; transform:translateY(80px); opacity:0; transition:all .3s cubic-bezier(.34,1.56,.64,1); pointer-events:none; }
   .toast.show { transform:translateY(0); opacity:1; }
   .toast-win { background:rgba(0,255,136,.15); color:var(--win); border:1px solid rgba(0,255,136,.3); }
   .toast-loss { background:rgba(255,61,107,.15); color:var(--loss); border:1px solid rgba(255,61,107,.3); }
+  .toast-info { background:rgba(123,123,255,.15); color:var(--neutral); border:1px solid rgba(123,123,255,.3); }
 
   @media(max-width:960px){.main-grid{grid-template-columns:1fr;}.stats-hero{grid-template-columns:1fr 1fr;}.summary-grid{grid-template-columns:1fr;}}
   @media(max-width:520px){.stats-hero{grid-template-columns:1fr;}.form-row{grid-template-columns:1fr;}.cal-cell{min-height:62px;padding:5px 6px;}.cal-pnl{font-size:.7rem;}}
@@ -151,17 +145,29 @@
 </head>
 <body>
 
+<!-- Loading Screen -->
+<div class="loading-screen" id="loading-screen">
+  <div class="loading-logo">BANKROLL</div>
+  <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+  <div class="loading-text" id="loading-text">CONNECTING TO DATABASE...</div>
+</div>
+
 <header>
   <div class="container">
     <div class="header-inner">
       <div class="logo">BANK<span>ROLL</span></div>
-      <div class="bankroll-pill"><div class="dot"></div><span id="header-bankroll">₱0.00</span></div>
+      <div class="header-right">
+        <div class="sync-badge">
+          <div class="sync-dot" id="sync-dot"></div>
+          <span id="sync-label">CONNECTING</span>
+        </div>
+        <div class="bankroll-pill"><div class="dot"></div><span id="header-bankroll">₱0.00</span></div>
+      </div>
     </div>
   </div>
 </header>
 
 <div class="container">
-
   <div class="stats-hero">
     <div class="stat-card green">
       <div class="stat-label">Current Bankroll</div>
@@ -186,7 +192,6 @@
   </div>
 
   <div class="main-grid">
-
     <!-- Calendar -->
     <div class="panel">
       <div class="cal-nav">
@@ -202,28 +207,15 @@
       </div>
       <div class="cal-grid" id="cal-grid"></div>
       <div class="cal-summary">
-        <div class="cal-sum-item">
-          <span class="cal-sum-label">Month P&L</span>
-          <span class="cal-sum-val" id="cal-month-pnl" style="color:var(--text)">₱0</span>
-        </div>
-        <div class="cal-sum-item">
-          <span class="cal-sum-label">Won</span>
-          <span class="cal-sum-val" id="cal-month-won" style="color:var(--win)">₱0</span>
-        </div>
-        <div class="cal-sum-item">
-          <span class="cal-sum-label">Lost</span>
-          <span class="cal-sum-val" id="cal-month-lost" style="color:var(--loss)">₱0</span>
-        </div>
-        <div class="cal-sum-item">
-          <span class="cal-sum-label">Active Days</span>
-          <span class="cal-sum-val" id="cal-month-days" style="color:var(--neutral)">0</span>
-        </div>
+        <div class="cal-sum-item"><span class="cal-sum-label">Month P&L</span><span class="cal-sum-val" id="cal-month-pnl" style="color:var(--text)">₱0</span></div>
+        <div class="cal-sum-item"><span class="cal-sum-label">Won</span><span class="cal-sum-val" id="cal-month-won" style="color:var(--win)">₱0</span></div>
+        <div class="cal-sum-item"><span class="cal-sum-label">Lost</span><span class="cal-sum-val" id="cal-month-lost" style="color:var(--loss)">₱0</span></div>
+        <div class="cal-sum-item"><span class="cal-sum-label">Active Days</span><span class="cal-sum-val" id="cal-month-days" style="color:var(--neutral)">0</span></div>
       </div>
     </div>
 
-    <!-- Right column -->
+    <!-- Right -->
     <div style="display:flex;flex-direction:column;gap:20px;">
-
       <div class="panel">
         <div class="panel-header"><div class="panel-title">Setup Bankroll</div></div>
         <div class="form-body">
@@ -276,28 +268,26 @@
         <div class="stat-row"><span class="stat-row-label">Avg Win</span><span class="stat-row-val" id="stat-avgwin">₱0</span></div>
         <div class="stat-row"><span class="stat-row-label">Avg Loss</span><span class="stat-row-val" id="stat-avgloss">₱0</span></div>
       </div>
-
     </div>
   </div>
 
   <div class="summary-grid">
     <div class="mini-card">
-   
+      <div class="mini-icon icon-green">💰</div>
       <div><div class="mini-label">Total Wagered</div><div class="mini-val" id="stat-wagered" style="color:var(--text)">₱0</div></div>
     </div>
     <div class="mini-card">
-   
+      <div class="mini-icon icon-red">📉</div>
       <div><div class="mini-label">Total Lost</div><div class="mini-val" id="stat-totalloss" style="color:var(--loss)">₱0</div></div>
     </div>
     <div class="mini-card">
-
+      <div class="mini-icon icon-gold">🏆</div>
       <div><div class="mini-label">Total Won</div><div class="mini-val" id="stat-totalwin" style="color:var(--win)">₱0</div></div>
     </div>
   </div>
-
 </div>
 
-<!-- Modal -->
+<!-- Day Modal -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
   <div class="modal">
     <div class="modal-header">
@@ -310,30 +300,103 @@
 
 <div class="toast" id="toast"></div>
 
-<script>
-let state = JSON.parse(localStorage.getItem('bankroll-state') || 'null') || { startingBalance: 0, entries: [] };
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, onValue, set, update, remove, get }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCLFHoQ-Ah5U1DkGXhY4N_ub3dji2JWtOE",
+  authDomain: "bankroll-1978d.firebaseapp.com",
+  databaseURL: "https://bankroll-1978d-default-rtdb.firebaseio.com",
+  projectId: "bankroll-1978d",
+  storageBucket: "bankroll-1978d.firebasestorage.app",
+  messagingSenderId: "74227310148",
+  appId: "1:74227310148:web:0c693d9c62edd17cf72611"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const stateRef = ref(db, 'bankroll');
+
+// ---- State (in memory, synced from Firebase) ----
+let state = { startingBalance: 0, entries: [] };
 let calYear, calMonth;
 const now = new Date();
 calYear = now.getFullYear(); calMonth = now.getMonth();
-document.getElementById('entry-date').value = now.toISOString().split('T')[0];
-render();
 
-function save() { localStorage.setItem('bankroll-state', JSON.stringify(state)); }
-
-function fmt(n) {
-  return '₱' + Math.abs(n).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+// ---- Sync indicator ----
+function setSyncStatus(status) {
+  const dot = document.getElementById('sync-dot');
+  const label = document.getElementById('sync-label');
+  dot.className = 'sync-dot ' + status;
+  label.textContent = { synced:'SYNCED', syncing:'SAVING...', error:'OFFLINE', connecting:'CONNECTING' }[status] || 'UNKNOWN';
 }
 
-function setStartingBalance() {
+// ---- Listen for real-time changes ----
+onValue(stateRef, (snapshot) => {
+  const data = snapshot.val();
+  if (data) {
+    state.startingBalance = data.startingBalance || 0;
+    // Convert entries object back to array
+    state.entries = data.entries ? Object.values(data.entries) : [];
+    state.entries.sort((a,b) => a.date.localeCompare(b.date) || a.id - b.id);
+  } else {
+    state = { startingBalance: 0, entries: [] };
+  }
+  setSyncStatus('synced');
+  hideLoading();
+  render();
+}, (error) => {
+  console.error(error);
+  setSyncStatus('error');
+  hideLoading();
+  showToast('Database error — check rules', 'loss');
+});
+
+// ---- Save to Firebase ----
+async function saveToFirebase() {
+  setSyncStatus('syncing');
+  try {
+    // Convert entries array to object keyed by id
+    const entriesObj = {};
+    state.entries.forEach(e => { entriesObj[e.id] = e; });
+    await set(stateRef, {
+      startingBalance: state.startingBalance,
+      entries: entriesObj
+    });
+    setSyncStatus('synced');
+  } catch(err) {
+    setSyncStatus('error');
+    showToast('Sync failed — check database rules', 'loss');
+  }
+}
+
+// ---- Loading ----
+function hideLoading() {
+  const ls = document.getElementById('loading-screen');
+  document.getElementById('loading-text').textContent = 'LOADED ✓';
+  setTimeout(() => ls.classList.add('hidden'), 600);
+}
+
+// ---- Helpers ----
+window.fmt = function(n) {
+  return '₱' + Math.abs(n).toLocaleString('en-PH', { minimumFractionDigits:2, maximumFractionDigits:2 });
+}
+
+// ---- Set Starting Balance ----
+window.setStartingBalance = async function() {
   const val = parseFloat(document.getElementById('starting-balance').value);
   if (isNaN(val) || val < 0) { showToast('Enter a valid amount', 'loss'); return; }
   state.startingBalance = val;
-  save(); render();
+  await saveToFirebase();
   showToast('Bankroll set to ' + fmt(val), 'win');
   document.getElementById('starting-balance').value = '';
 }
 
-function addEntry(result) {
+// ---- Add Entry ----
+window.addEntry = async function(result) {
   const desc = document.getElementById('entry-desc').value.trim();
   const amount = parseFloat(document.getElementById('entry-amount').value);
   const type = document.getElementById('entry-type').value;
@@ -341,43 +404,46 @@ function addEntry(result) {
   if (!desc) { showToast('Add a description', 'loss'); return; }
   if (isNaN(amount) || amount <= 0) { showToast('Enter a valid amount', 'loss'); return; }
   if (!date) { showToast('Pick a date', 'loss'); return; }
-  state.entries.push({ id: Date.now(), desc, amount, type, date, result });
-  state.entries.sort((a, b) => a.date.localeCompare(b.date) || a.id - b.id);
-  save(); render();
+  const id = Date.now();
+  state.entries.push({ id, desc, amount, type, date, result });
+  state.entries.sort((a,b) => a.date.localeCompare(b.date) || a.id - b.id);
+  await saveToFirebase();
   showToast(result === 'win' ? '🎉 Win recorded!' : '💸 Loss recorded.', result);
   document.getElementById('entry-desc').value = '';
   document.getElementById('entry-amount').value = '';
   document.getElementById('entry-date').value = new Date().toISOString().split('T')[0];
   const d = new Date(date + 'T00:00:00');
   calYear = d.getFullYear(); calMonth = d.getMonth();
-  renderCalendar();
 }
 
-function deleteEntry(id) {
+// ---- Delete Entry ----
+window.deleteEntry = async function(id) {
   state.entries = state.entries.filter(e => e.id !== id);
-  save(); render();
+  await saveToFirebase();
   showToast('Entry removed', 'loss');
   document.getElementById('modal-overlay').classList.remove('open');
 }
 
+// ---- Compute ----
 function computeStats() {
   let balance = state.startingBalance;
-  let totalWon = 0, totalLost = 0, bigWin = 0, bigLoss = 0, bigWinDesc = '', bigLossDesc = '';
+  let totalWon=0, totalLost=0, bigWin=0, bigLoss=0, bigWinDesc='', bigLossDesc='';
   state.entries.forEach(e => {
-    if (e.result === 'win') { balance += e.amount; totalWon += e.amount; if (e.amount > bigWin) { bigWin = e.amount; bigWinDesc = e.desc; } }
-    else { balance -= e.amount; totalLost += e.amount; if (e.amount > bigLoss) { bigLoss = e.amount; bigLossDesc = e.desc; } }
+    if (e.result==='win') { balance+=e.amount; totalWon+=e.amount; if(e.amount>bigWin){bigWin=e.amount;bigWinDesc=e.desc;} }
+    else { balance-=e.amount; totalLost+=e.amount; if(e.amount>bigLoss){bigLoss=e.amount;bigLossDesc=e.desc;} }
   });
-  const wins = state.entries.filter(e => e.result === 'win');
-  const losses = state.entries.filter(e => e.result === 'loss');
-  const pnl = totalWon - totalLost;
-  const pnlPct = state.startingBalance ? (pnl / state.startingBalance * 100) : 0;
-  const winRate = state.entries.length ? (wins.length / state.entries.length * 100) : 0;
-  return { balance, pnl, pnlPct, bigWin, bigWinDesc, bigLoss, bigLossDesc, totalWon, totalLost,
-           wins: wins.length, losses: losses.length, winRate,
-           avgWin: wins.length ? totalWon / wins.length : 0,
-           avgLoss: losses.length ? totalLost / losses.length : 0 };
+  const wins=state.entries.filter(e=>e.result==='win');
+  const losses=state.entries.filter(e=>e.result==='loss');
+  const pnl=totalWon-totalLost;
+  return { balance, pnl, pnlPct:state.startingBalance?(pnl/state.startingBalance*100):0,
+           bigWin, bigWinDesc, bigLoss, bigLossDesc, totalWon, totalLost,
+           wins:wins.length, losses:losses.length,
+           winRate:state.entries.length?(wins.length/state.entries.length*100):0,
+           avgWin:wins.length?totalWon/wins.length:0,
+           avgLoss:losses.length?totalLost/losses.length:0 };
 }
 
+// ---- Render ----
 function render() {
   const s = computeStats();
   document.getElementById('header-bankroll').textContent = fmt(s.balance);
@@ -385,10 +451,10 @@ function render() {
   document.getElementById('stat-bankroll-sub').textContent = 'Starting: ' + fmt(state.startingBalance);
   const pnlEl = document.getElementById('stat-pnl');
   const pnlCard = document.getElementById('pnl-card');
-  pnlEl.textContent = (s.pnl >= 0 ? '+' : '−') + fmt(s.pnl);
-  pnlEl.className = 'stat-value ' + (s.pnl >= 0 ? 'green' : 'red');
-  pnlCard.className = 'stat-card ' + (s.pnl >= 0 ? 'green' : 'red');
-  document.getElementById('stat-pnl-sub').textContent = (s.pnlPct >= 0 ? '+' : '') + s.pnlPct.toFixed(2) + '% return';
+  pnlEl.textContent = (s.pnl>=0?'+':'−') + fmt(s.pnl);
+  pnlEl.className = 'stat-value ' + (s.pnl>=0?'green':'red');
+  pnlCard.className = 'stat-card ' + (s.pnl>=0?'green':'red');
+  document.getElementById('stat-pnl-sub').textContent = (s.pnlPct>=0?'+':'') + s.pnlPct.toFixed(2) + '% return';
   document.getElementById('stat-bigwin').textContent = s.bigWin ? fmt(s.bigWin) : '₱0';
   document.getElementById('stat-bigwin-sub').textContent = s.bigWinDesc || 'No wins yet';
   document.getElementById('stat-bigloss').textContent = s.bigLoss ? fmt(s.bigLoss) : '₱0';
@@ -398,159 +464,133 @@ function render() {
   document.getElementById('stat-losses').textContent = s.losses;
   document.getElementById('stat-avgwin').textContent = fmt(s.avgWin);
   document.getElementById('stat-avgloss').textContent = fmt(s.avgLoss);
-  document.getElementById('stat-wagered').textContent = fmt(s.totalWon + s.totalLost);
+  document.getElementById('stat-wagered').textContent = fmt(s.totalWon+s.totalLost);
   document.getElementById('stat-totalloss').textContent = fmt(s.totalLost);
   document.getElementById('stat-totalwin').textContent = fmt(s.totalWon);
   renderCalendar();
 }
 
-function changeMonth(dir) {
+// ---- Calendar ----
+window.changeMonth = function(dir) {
   calMonth += dir;
-  if (calMonth > 11) { calMonth = 0; calYear++; }
-  if (calMonth < 0) { calMonth = 11; calYear--; }
+  if (calMonth>11){calMonth=0;calYear++;} if(calMonth<0){calMonth=11;calYear--;}
   renderCalendar();
 }
 
 function renderCalendar() {
-  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
   document.getElementById('cal-month-label').textContent = MONTHS[calMonth] + ' ' + calYear;
-
-  const firstDay = new Date(calYear, calMonth, 1).getDay();
-  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const firstDay = new Date(calYear,calMonth,1).getDay();
+  const daysInMonth = new Date(calYear,calMonth+1,0).getDate();
   const todayStr = new Date().toISOString().split('T')[0];
 
-  // Build day map
   const dayMap = {};
   state.entries.forEach(e => {
-    const d = new Date(e.date + 'T00:00:00');
-    if (d.getFullYear() === calYear && d.getMonth() === calMonth) {
+    const d = new Date(e.date+'T00:00:00');
+    if (d.getFullYear()===calYear && d.getMonth()===calMonth) {
       const day = d.getDate();
-      if (!dayMap[day]) dayMap[day] = { won: 0, lost: 0, entries: [] };
-      if (e.result === 'win') dayMap[day].won += e.amount;
-      else dayMap[day].lost += e.amount;
+      if (!dayMap[day]) dayMap[day]={won:0,lost:0,entries:[]};
+      if (e.result==='win') dayMap[day].won+=e.amount;
+      else dayMap[day].lost+=e.amount;
       dayMap[day].entries.push(e);
     }
   });
 
-  // Monthly summary
-  let mWon = 0, mLost = 0, mDays = 0;
-  Object.values(dayMap).forEach(d => { mWon += d.won; mLost += d.lost; mDays++; });
-  const mPnl = mWon - mLost;
-  const mpEl = document.getElementById('cal-month-pnl');
-  mpEl.textContent = (mPnl >= 0 ? '+' : '−') + fmt(mPnl);
-  mpEl.style.color = mPnl > 0 ? 'var(--win)' : mPnl < 0 ? 'var(--loss)' : 'var(--text)';
-  document.getElementById('cal-month-won').textContent = fmt(mWon);
-  document.getElementById('cal-month-lost').textContent = fmt(mLost);
-  document.getElementById('cal-month-days').textContent = mDays;
+  let mWon=0,mLost=0,mDays=0;
+  Object.values(dayMap).forEach(d=>{mWon+=d.won;mLost+=d.lost;mDays++;});
+  const mPnl=mWon-mLost;
+  const mpEl=document.getElementById('cal-month-pnl');
+  mpEl.textContent=(mPnl>=0?'+':'−')+fmt(mPnl);
+  mpEl.style.color=mPnl>0?'var(--win)':mPnl<0?'var(--loss)':'var(--text)';
+  document.getElementById('cal-month-won').textContent=fmt(mWon);
+  document.getElementById('cal-month-lost').textContent=fmt(mLost);
+  document.getElementById('cal-month-days').textContent=mDays;
 
-  const grid = document.getElementById('cal-grid');
-  grid.innerHTML = '';
+  const grid=document.getElementById('cal-grid');
+  grid.innerHTML='';
+  for(let i=0;i<firstDay;i++){const e=document.createElement('div');e.className='cal-cell empty';grid.appendChild(e);}
 
-  for (let i = 0; i < firstDay; i++) {
-    const e = document.createElement('div');
-    e.className = 'cal-cell empty';
-    grid.appendChild(e);
-  }
+  for(let day=1;day<=daysInMonth;day++){
+    const cell=document.createElement('div');
+    const dateStr=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
+    const isToday=dateStr===todayStr;
+    const data=dayMap[day];
+    let cls='cal-cell'+(isToday?' today-cell':'');
 
-  for (let day = 1; day <= daysInMonth; day++) {
-    const cell = document.createElement('div');
-    const dateStr = calYear + '-' + String(calMonth + 1).padStart(2,'0') + '-' + String(day).padStart(2,'0');
-    const isToday = dateStr === todayStr;
-    const data = dayMap[day];
-
-    let cls = 'cal-cell' + (isToday ? ' today-cell' : '');
-
-    const dateDiv = document.createElement('div');
-    dateDiv.className = 'cal-date';
-    dateDiv.textContent = day;
+    const dateDiv=document.createElement('div');
+    dateDiv.className='cal-date';
+    dateDiv.textContent=day;
     cell.appendChild(dateDiv);
 
-    if (data) {
-      const pnl = data.won - data.lost;
-      const hasWin = data.won > 0, hasLoss = data.lost > 0;
+    if(data){
+      const pnl=data.won-data.lost;
+      const hasWin=data.won>0,hasLoss=data.lost>0;
+      if(hasWin&&!hasLoss) cls+=' has-win';
+      else if(hasLoss&&!hasWin) cls+=' has-loss';
+      else cls+=(pnl>=0?' has-win':' has-loss');
 
-      if (hasWin && !hasLoss) cls += ' has-win';
-      else if (hasLoss && !hasWin) cls += ' has-loss';
-      else cls += (pnl >= 0 ? ' has-win' : ' has-loss');
-
-      const pnlDiv = document.createElement('div');
-      if (hasWin && !hasLoss) {
-        pnlDiv.className = 'cal-pnl win';
-        pnlDiv.textContent = '+' + fmt(data.won);
-      } else if (hasLoss && !hasWin) {
-        pnlDiv.className = 'cal-pnl loss';
-        pnlDiv.textContent = '−' + fmt(data.lost);
-      } else {
-        pnlDiv.className = 'cal-pnl';
-        pnlDiv.innerHTML =
-          (hasWin  ? `<span style="color:#6dffc0;font-size:.74rem">+${fmt(data.won)}</span><br>` : '') +
-          (hasLoss ? `<span style="color:#ff8fa6;font-size:.74rem">−${fmt(data.lost)}</span>` : '');
-      }
+      const pnlDiv=document.createElement('div');
+      if(hasWin&&!hasLoss){pnlDiv.className='cal-pnl win';pnlDiv.textContent='+'+fmt(data.won);}
+      else if(hasLoss&&!hasWin){pnlDiv.className='cal-pnl loss';pnlDiv.textContent='−'+fmt(data.lost);}
+      else{pnlDiv.className='cal-pnl';pnlDiv.innerHTML=(hasWin?`<span style="color:#6dffc0;font-size:.74rem">+${fmt(data.won)}</span><br>`:'')+
+        (hasLoss?`<span style="color:#ff8fa6;font-size:.74rem">−${fmt(data.lost)}</span>`:'');}
       cell.appendChild(pnlDiv);
 
-      if (data.entries.length) {
-        const cnt = document.createElement('div');
-        cnt.className = 'cal-bet-count';
-        cnt.textContent = data.entries.length + (data.entries.length === 1 ? ' bet' : ' bets');
+      if(data.entries.length){
+        const cnt=document.createElement('div');
+        cnt.className='cal-bet-count';
+        cnt.textContent=data.entries.length+(data.entries.length===1?' bet':' bets');
         cell.appendChild(cnt);
       }
-
-      cell.addEventListener('click', () => openDayModal(dateStr, data));
+      cell.addEventListener('click',()=>openDayModal(dateStr,data));
     }
-
-    cell.className = cls;
+    cell.className=cls;
     grid.appendChild(cell);
   }
 }
 
-function openDayModal(dateStr, data) {
-  const d = new Date(dateStr + 'T00:00:00');
-  document.getElementById('modal-date-title').textContent =
-    d.toLocaleDateString('en-PH', { weekday:'short', year:'numeric', month:'long', day:'numeric' });
-
-  const pnl = data.won - data.lost;
-  const body = document.getElementById('modal-body');
-  body.innerHTML = `
+// ---- Day Modal ----
+window.openDayModal = function(dateStr, data) {
+  const d=new Date(dateStr+'T00:00:00');
+  document.getElementById('modal-date-title').textContent=d.toLocaleDateString('en-PH',{weekday:'short',year:'numeric',month:'long',day:'numeric'});
+  const pnl=data.won-data.lost;
+  document.getElementById('modal-body').innerHTML=`
     <div class="modal-summary">
-      <div class="modal-sum-item">
-        <span class="modal-sum-label">Day P&L</span>
-        <span class="modal-sum-val" style="color:${pnl >= 0 ? 'var(--win)' : 'var(--loss)'}">${pnl >= 0 ? '+' : '−'}${fmt(pnl)}</span>
-      </div>
-      <div class="modal-sum-item">
-        <span class="modal-sum-label">Won</span>
-        <span class="modal-sum-val" style="color:var(--win)">${fmt(data.won)}</span>
-      </div>
-      <div class="modal-sum-item">
-        <span class="modal-sum-label">Lost</span>
-        <span class="modal-sum-val" style="color:var(--loss)">${fmt(data.lost)}</span>
-      </div>
+      <div class="modal-sum-item"><span class="modal-sum-label">Day P&L</span>
+        <span class="modal-sum-val" style="color:${pnl>=0?'var(--win)':'var(--loss)'}">${pnl>=0?'+':'−'}${fmt(pnl)}</span></div>
+      <div class="modal-sum-item"><span class="modal-sum-label">Won</span>
+        <span class="modal-sum-val" style="color:var(--win)">${fmt(data.won)}</span></div>
+      <div class="modal-sum-item"><span class="modal-sum-label">Lost</span>
+        <span class="modal-sum-val" style="color:var(--loss)">${fmt(data.lost)}</span></div>
     </div>
-    ${data.entries.map(e => `
+    ${data.entries.map(e=>`
       <div class="modal-entry">
-        <div>
-          <div class="modal-entry-desc">${e.desc}</div>
-          <div class="modal-entry-type">${e.type}</div>
-        </div>
+        <div><div class="modal-entry-desc">${e.desc}</div><div class="modal-entry-type">${e.type}</div></div>
         <div class="modal-right">
           <span class="modal-amt" style="color:${e.result==='win'?'var(--win)':'var(--loss)'}">${e.result==='win'?'+':'−'}${fmt(e.amount)}</span>
           <button class="modal-del" onclick="deleteEntry(${e.id})">✕</button>
         </div>
-      </div>`).join('')}
-  `;
+      </div>`).join('')}`;
   document.getElementById('modal-overlay').classList.add('open');
 }
 
-function closeModalOutside(e) {
-  if (e.target === document.getElementById('modal-overlay'))
+window.closeModalOutside = function(e) {
+  if(e.target===document.getElementById('modal-overlay'))
     document.getElementById('modal-overlay').classList.remove('open');
 }
 
-function showToast(msg, type) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.className = 'toast toast-' + type + ' show';
+// ---- Toast ----
+window.showToast = function(msg, type) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast toast-'+type+' show';
   clearTimeout(t._timer);
-  t._timer = setTimeout(() => t.classList.remove('show'), 2800);
+  t._timer=setTimeout(()=>t.classList.remove('show'),2800);
 }
+
+// ---- Init date ----
+document.getElementById('entry-date').value = new Date().toISOString().split('T')[0];
+setSyncStatus('connecting');
+
 </script>
 </body>
 </html>
