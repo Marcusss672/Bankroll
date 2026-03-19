@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BANKROLL — P&L Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: #2a2a3d;
+    --accent: #00ff88;
+    --accent2: #ff3d6b;
+    --accent3: #ffd700;
+    --text: #e8e8f0;
+    --muted: #6b6b8a;
+    --win: #00ff88;
+    --loss: #ff3d6b;
+    --neutral: #7b7bff;
+    --cell-win: #1a3d2b;
+    --cell-win-b: #2a6644;
+    --cell-loss: #3d1a22;
+    --cell-loss-b: #662a38;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Space Grotesk',sans-serif; min-height:100vh; }
+  body::before {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background: radial-gradient(ellipse 80% 50% at 20% 20%,rgba(0,255,136,.03) 0%,transparent 60%),
+                radial-gradient(ellipse 60% 40% at 80% 80%,rgba(255,61,107,.03) 0%,transparent 60%);
+  }
+  .container { max-width:1280px; margin:0 auto; padding:0 24px; position:relative; z-index:1; }
+
+  /* Header */
+  header { border-bottom:1px solid var(--border); padding:18px 0; position:sticky; top:0; background:rgba(10,10,15,.97); backdrop-filter:blur(20px); z-index:100; }
+  .header-inner { display:flex; align-items:center; justify-content:space-between; }
+  .logo { font-family:'Bebas Neue',sans-serif; font-size:1.8rem; letter-spacing:4px; background:linear-gradient(135deg,var(--accent),var(--accent3)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .logo span { -webkit-text-fill-color:var(--accent2); }
+  .bankroll-pill { background:var(--surface2); border:1px solid var(--border); border-radius:100px; padding:7px 18px; font-family:'DM Mono',monospace; font-size:.85rem; display:flex; align-items:center; gap:8px; }
+  .dot { width:7px; height:7px; border-radius:50%; background:var(--accent); animation:pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
+
+  /* Hero */
+  .stats-hero { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:16px; overflow:hidden; margin:28px 0; }
+  .stat-card { background:var(--surface); padding:22px 20px; position:relative; transition:background .2s; }
+  .stat-card:hover { background:var(--surface2); }
+  .stat-card::after { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+  .stat-card.green::after { background:var(--win); }
+  .stat-card.red::after { background:var(--loss); }
+  .stat-card.gold::after { background:var(--accent3); }
+  .stat-label { font-size:.68rem; text-transform:uppercase; letter-spacing:2px; color:var(--muted); margin-bottom:8px; font-family:'DM Mono',monospace; }
+  .stat-value { font-family:'Bebas Neue',sans-serif; font-size:2.2rem; letter-spacing:2px; line-height:1; }
+  .stat-value.green { color:var(--win); } .stat-value.red { color:var(--loss); } .stat-value.gold { color:var(--accent3); }
+  .stat-sub { font-size:.74rem; color:var(--muted); margin-top:5px; font-family:'DM Mono',monospace; }
+
+  /* Layout */
+  .main-grid { display:grid; grid-template-columns:1fr 360px; gap:24px; margin-bottom:28px; }
+  .panel { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
+  .panel-header { padding:18px 22px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .panel-title { font-family:'Bebas Neue',sans-serif; font-size:1.2rem; letter-spacing:2px; }
+
+  /* Calendar */
+  .cal-nav { display:flex; align-items:center; justify-content:space-between; padding:16px 22px; border-bottom:1px solid var(--border); }
+  .cal-nav-btn { background:var(--surface2); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:6px 14px; cursor:pointer; font-size:1rem; transition:all .15s; }
+  .cal-nav-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .cal-month-label { font-family:'Bebas Neue',sans-serif; font-size:1.4rem; letter-spacing:3px; }
+  .cal-day-headers { display:grid; grid-template-columns:repeat(7,1fr); border-bottom:1px solid var(--border); }
+  .cal-day-header { text-align:center; padding:10px 4px; font-size:.65rem; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); font-family:'DM Mono',monospace; border-right:1px solid var(--border); }
+  .cal-day-header:last-child { border-right:none; }
+  .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); }
+  .cal-cell { min-height:90px; border-right:1px solid var(--border); border-bottom:1px solid var(--border); padding:8px 10px; position:relative; transition:filter .15s; }
+  .cal-cell:nth-child(7n) { border-right:none; }
+  .cal-cell.empty { background:transparent; }
+  .cal-cell.today-cell { outline:2px solid var(--accent); outline-offset:-2px; }
+  .cal-cell.has-win { background:var(--cell-win); border-color:var(--cell-win-b); cursor:pointer; }
+  .cal-cell.has-loss { background:var(--cell-loss); border-color:var(--cell-loss-b); cursor:pointer; }
+  .cal-cell.has-win:hover, .cal-cell.has-loss:hover { filter:brightness(1.25); }
+  .cal-date { font-size:.78rem; color:var(--muted); font-family:'DM Mono',monospace; line-height:1; margin-bottom:6px; }
+  .cal-cell.has-win .cal-date, .cal-cell.has-loss .cal-date { color:rgba(255,255,255,.45); }
+  .cal-cell.today-cell .cal-date { color:var(--accent); }
+  .cal-pnl { font-family:'DM Mono',monospace; font-size:.82rem; font-weight:500; line-height:1.4; }
+  .cal-pnl.win { color:#6dffc0; } .cal-pnl.loss { color:#ff8fa6; }
+  .cal-bet-count { position:absolute; bottom:7px; right:9px; font-size:.58rem; font-family:'DM Mono',monospace; color:rgba(255,255,255,.22); }
+  .cal-summary { padding:14px 22px; border-top:1px solid var(--border); display:flex; gap:24px; align-items:center; flex-wrap:wrap; }
+  .cal-sum-item { display:flex; align-items:center; gap:8px; }
+  .cal-sum-label { font-size:.67rem; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); font-family:'DM Mono',monospace; }
+  .cal-sum-val { font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:1px; }
+
+  /* Form */
+  .form-body { padding:20px; display:flex; flex-direction:column; gap:14px; }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .input-group { display:flex; flex-direction:column; gap:5px; }
+  .input-label { font-size:.68rem; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); font-family:'DM Mono',monospace; }
+  input, select { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:9px 12px; color:var(--text); font-family:'Space Grotesk',sans-serif; font-size:.88rem; outline:none; transition:border-color .2s; width:100%; }
+  input:focus, select:focus { border-color:var(--accent); }
+  select option { background:var(--surface); }
+  .btn { padding:11px 20px; border-radius:8px; border:none; cursor:pointer; font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:2px; transition:all .2s; width:100%; }
+  .btn-win { background:var(--win); color:#000; }
+  .btn-win:hover { background:#00e67a; transform:translateY(-1px); box-shadow:0 4px 16px rgba(0,255,136,.3); }
+  .btn-loss { background:var(--loss); color:#fff; }
+  .btn-loss:hover { background:#e0304f; transform:translateY(-1px); box-shadow:0 4px 16px rgba(255,61,107,.3); }
+  .btn-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+
+  /* Stat rows */
+  .stat-row { display:flex; justify-content:space-between; align-items:center; padding:12px 20px; border-bottom:1px solid var(--border); }
+  .stat-row:last-child { border-bottom:none; }
+  .stat-row-label { font-size:.75rem; color:var(--muted); font-family:'DM Mono',monospace; text-transform:uppercase; letter-spacing:1px; }
+  .stat-row-val { font-family:'Bebas Neue',sans-serif; font-size:1.3rem; letter-spacing:1px; }
+
+  /* Summary */
+  .summary-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:28px; }
+  .mini-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 20px; display:flex; align-items:center; gap:14px; }
+  .mini-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; flex-shrink:0; }
+  .icon-green { background:rgba(0,255,136,.1); } .icon-red { background:rgba(255,61,107,.1); } .icon-gold { background:rgba(255,215,0,.1); }
+  .mini-label { font-size:.67rem; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); font-family:'DM Mono',monospace; }
+  .mini-val { font-family:'Bebas Neue',sans-serif; font-size:1.5rem; letter-spacing:1px; margin-top:2px; }
+
+  /* Modal */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:200; align-items:center; justify-content:center; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:var(--surface); border:1px solid var(--border); border-radius:16px; width:440px; max-width:95vw; max-height:80vh; overflow-y:auto; }
+  .modal-header { padding:18px 22px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .modal-title { font-family:'Bebas Neue',sans-serif; font-size:1.2rem; letter-spacing:2px; }
+  .modal-close { background:none; border:none; color:var(--muted); font-size:1.2rem; cursor:pointer; padding:4px 8px; border-radius:6px; transition:color .2s; }
+  .modal-close:hover { color:var(--loss); }
+  .modal-body { padding:16px 20px; }
+  .modal-entry { display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-bottom:1px solid var(--border); }
+  .modal-entry:last-child { border-bottom:none; }
+  .modal-entry-desc { font-size:.9rem; margin-bottom:2px; }
+  .modal-entry-type { font-size:.68rem; color:var(--muted); font-family:'DM Mono',monospace; text-transform:uppercase; letter-spacing:1px; }
+  .modal-right { display:flex; align-items:center; gap:10px; }
+  .modal-amt { font-family:'DM Mono',monospace; font-size:.92rem; font-weight:500; }
+  .modal-del { background:none; border:none; color:var(--muted); cursor:pointer; font-size:.88rem; padding:4px 6px; transition:color .2s; border-radius:4px; }
+  .modal-del:hover { color:var(--loss); background:rgba(255,61,107,.1); }
+  .modal-summary { background:var(--surface2); border-radius:8px; padding:12px 16px; margin-bottom:12px; display:flex; gap:20px; }
+  .modal-sum-item { display:flex; flex-direction:column; gap:2px; }
+  .modal-sum-label { font-size:.62rem; text-transform:uppercase; letter-spacing:1px; color:var(--muted); font-family:'DM Mono',monospace; }
+  .modal-sum-val { font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:1px; }
+
+  /* Toast */
+  .toast { position:fixed; bottom:28px; right:28px; padding:12px 22px; border-radius:10px; font-family:'DM Mono',monospace; font-size:.82rem; z-index:999; transform:translateY(80px); opacity:0; transition:all .3s cubic-bezier(.34,1.56,.64,1); pointer-events:none; }
+  .toast.show { transform:translateY(0); opacity:1; }
+  .toast-win { background:rgba(0,255,136,.15); color:var(--win); border:1px solid rgba(0,255,136,.3); }
+  .toast-loss { background:rgba(255,61,107,.15); color:var(--loss); border:1px solid rgba(255,61,107,.3); }
+
+  @media(max-width:960px){.main-grid{grid-template-columns:1fr;}.stats-hero{grid-template-columns:1fr 1fr;}.summary-grid{grid-template-columns:1fr;}}
+  @media(max-width:520px){.stats-hero{grid-template-columns:1fr;}.form-row{grid-template-columns:1fr;}.cal-cell{min-height:62px;padding:5px 6px;}.cal-pnl{font-size:.7rem;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <div class="header-inner">
+      <div class="logo">BANK<span>ROLL</span></div>
+      <div class="bankroll-pill"><div class="dot"></div><span id="header-bankroll">₱0.00</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="stats-hero">
+    <div class="stat-card green">
+      <div class="stat-label">Current Bankroll</div>
+      <div class="stat-value green" id="stat-bankroll">₱0</div>
+      <div class="stat-sub" id="stat-bankroll-sub">Starting balance</div>
+    </div>
+    <div class="stat-card" id="pnl-card">
+      <div class="stat-label">Total P&L</div>
+      <div class="stat-value" id="stat-pnl">₱0</div>
+      <div class="stat-sub" id="stat-pnl-sub">0.00% return</div>
+    </div>
+    <div class="stat-card gold">
+      <div class="stat-label">Biggest Win</div>
+      <div class="stat-value gold" id="stat-bigwin">₱0</div>
+      <div class="stat-sub" id="stat-bigwin-sub">No wins yet</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-label">Biggest Loss</div>
+      <div class="stat-value red" id="stat-bigloss">₱0</div>
+      <div class="stat-sub" id="stat-bigloss-sub">No losses yet</div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+
+    <!-- Calendar -->
+    <div class="panel">
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="changeMonth(-1)">&#8592;</button>
+        <div class="cal-month-label" id="cal-month-label">—</div>
+        <button class="cal-nav-btn" onclick="changeMonth(1)">&#8594;</button>
+      </div>
+      <div class="cal-day-headers">
+        <div class="cal-day-header">Sun</div><div class="cal-day-header">Mon</div>
+        <div class="cal-day-header">Tue</div><div class="cal-day-header">Wed</div>
+        <div class="cal-day-header">Thu</div><div class="cal-day-header">Fri</div>
+        <div class="cal-day-header">Sat</div>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="cal-summary">
+        <div class="cal-sum-item">
+          <span class="cal-sum-label">Month P&L</span>
+          <span class="cal-sum-val" id="cal-month-pnl" style="color:var(--text)">₱0</span>
+        </div>
+        <div class="cal-sum-item">
+          <span class="cal-sum-label">Won</span>
+          <span class="cal-sum-val" id="cal-month-won" style="color:var(--win)">₱0</span>
+        </div>
+        <div class="cal-sum-item">
+          <span class="cal-sum-label">Lost</span>
+          <span class="cal-sum-val" id="cal-month-lost" style="color:var(--loss)">₱0</span>
+        </div>
+        <div class="cal-sum-item">
+          <span class="cal-sum-label">Active Days</span>
+          <span class="cal-sum-val" id="cal-month-days" style="color:var(--neutral)">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right column -->
+    <div style="display:flex;flex-direction:column;gap:20px;">
+
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">Setup Bankroll</div></div>
+        <div class="form-body">
+          <div class="input-group">
+            <label class="input-label">Starting Balance (₱)</label>
+            <input type="number" id="starting-balance" placeholder="e.g. 10000" min="0">
+          </div>
+          <button class="btn btn-win" onclick="setStartingBalance()">SET BANKROLL</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">Add Entry</div></div>
+        <div class="form-body">
+          <div class="input-group">
+            <label class="input-label">Description</label>
+            <input type="text" id="entry-desc" placeholder="e.g. Lakers vs Celtics">
+          </div>
+          <div class="form-row">
+            <div class="input-group">
+              <label class="input-label">Amount (₱)</label>
+              <input type="number" id="entry-amount" placeholder="0.00" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+              <label class="input-label">Type</label>
+              <select id="entry-type">
+                <option value="sports">Sports Bet</option>
+                <option value="casino">Casino</option>
+                <option value="poker">Poker</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Date</label>
+            <input type="date" id="entry-date">
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-win" onclick="addEntry('win')">+ WIN</button>
+            <button class="btn btn-loss" onclick="addEntry('loss')">− LOSS</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">All-Time Stats</div></div>
+        <div class="stat-row"><span class="stat-row-label">Win Rate</span><span class="stat-row-val" id="stat-winrate" style="color:var(--win)">0%</span></div>
+        <div class="stat-row"><span class="stat-row-label">Total Wins</span><span class="stat-row-val" id="stat-wins" style="color:var(--win)">0</span></div>
+        <div class="stat-row"><span class="stat-row-label">Total Losses</span><span class="stat-row-val" id="stat-losses" style="color:var(--loss)">0</span></div>
+        <div class="stat-row"><span class="stat-row-label">Avg Win</span><span class="stat-row-val" id="stat-avgwin">₱0</span></div>
+        <div class="stat-row"><span class="stat-row-label">Avg Loss</span><span class="stat-row-val" id="stat-avgloss">₱0</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="mini-card">
+   
+      <div><div class="mini-label">Total Wagered</div><div class="mini-val" id="stat-wagered" style="color:var(--text)">₱0</div></div>
+    </div>
+    <div class="mini-card">
+   
+      <div><div class="mini-label">Total Lost</div><div class="mini-val" id="stat-totalloss" style="color:var(--loss)">₱0</div></div>
+    </div>
+    <div class="mini-card">
+
+      <div><div class="mini-label">Total Won</div><div class="mini-val" id="stat-totalwin" style="color:var(--win)">₱0</div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-date-title">—</div>
+      <button class="modal-close" onclick="document.getElementById('modal-overlay').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let state = JSON.parse(localStorage.getItem('bankroll-state') || 'null') || { startingBalance: 0, entries: [] };
+let calYear, calMonth;
+const now = new Date();
+calYear = now.getFullYear(); calMonth = now.getMonth();
+document.getElementById('entry-date').value = now.toISOString().split('T')[0];
+render();
+
+function save() { localStorage.setItem('bankroll-state', JSON.stringify(state)); }
+
+function fmt(n) {
+  return '₱' + Math.abs(n).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function setStartingBalance() {
+  const val = parseFloat(document.getElementById('starting-balance').value);
+  if (isNaN(val) || val < 0) { showToast('Enter a valid amount', 'loss'); return; }
+  state.startingBalance = val;
+  save(); render();
+  showToast('Bankroll set to ' + fmt(val), 'win');
+  document.getElementById('starting-balance').value = '';
+}
+
+function addEntry(result) {
+  const desc = document.getElementById('entry-desc').value.trim();
+  const amount = parseFloat(document.getElementById('entry-amount').value);
+  const type = document.getElementById('entry-type').value;
+  const date = document.getElementById('entry-date').value;
+  if (!desc) { showToast('Add a description', 'loss'); return; }
+  if (isNaN(amount) || amount <= 0) { showToast('Enter a valid amount', 'loss'); return; }
+  if (!date) { showToast('Pick a date', 'loss'); return; }
+  state.entries.push({ id: Date.now(), desc, amount, type, date, result });
+  state.entries.sort((a, b) => a.date.localeCompare(b.date) || a.id - b.id);
+  save(); render();
+  showToast(result === 'win' ? '🎉 Win recorded!' : '💸 Loss recorded.', result);
+  document.getElementById('entry-desc').value = '';
+  document.getElementById('entry-amount').value = '';
+  document.getElementById('entry-date').value = new Date().toISOString().split('T')[0];
+  const d = new Date(date + 'T00:00:00');
+  calYear = d.getFullYear(); calMonth = d.getMonth();
+  renderCalendar();
+}
+
+function deleteEntry(id) {
+  state.entries = state.entries.filter(e => e.id !== id);
+  save(); render();
+  showToast('Entry removed', 'loss');
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+function computeStats() {
+  let balance = state.startingBalance;
+  let totalWon = 0, totalLost = 0, bigWin = 0, bigLoss = 0, bigWinDesc = '', bigLossDesc = '';
+  state.entries.forEach(e => {
+    if (e.result === 'win') { balance += e.amount; totalWon += e.amount; if (e.amount > bigWin) { bigWin = e.amount; bigWinDesc = e.desc; } }
+    else { balance -= e.amount; totalLost += e.amount; if (e.amount > bigLoss) { bigLoss = e.amount; bigLossDesc = e.desc; } }
+  });
+  const wins = state.entries.filter(e => e.result === 'win');
+  const losses = state.entries.filter(e => e.result === 'loss');
+  const pnl = totalWon - totalLost;
+  const pnlPct = state.startingBalance ? (pnl / state.startingBalance * 100) : 0;
+  const winRate = state.entries.length ? (wins.length / state.entries.length * 100) : 0;
+  return { balance, pnl, pnlPct, bigWin, bigWinDesc, bigLoss, bigLossDesc, totalWon, totalLost,
+           wins: wins.length, losses: losses.length, winRate,
+           avgWin: wins.length ? totalWon / wins.length : 0,
+           avgLoss: losses.length ? totalLost / losses.length : 0 };
+}
+
+function render() {
+  const s = computeStats();
+  document.getElementById('header-bankroll').textContent = fmt(s.balance);
+  document.getElementById('stat-bankroll').textContent = fmt(s.balance);
+  document.getElementById('stat-bankroll-sub').textContent = 'Starting: ' + fmt(state.startingBalance);
+  const pnlEl = document.getElementById('stat-pnl');
+  const pnlCard = document.getElementById('pnl-card');
+  pnlEl.textContent = (s.pnl >= 0 ? '+' : '−') + fmt(s.pnl);
+  pnlEl.className = 'stat-value ' + (s.pnl >= 0 ? 'green' : 'red');
+  pnlCard.className = 'stat-card ' + (s.pnl >= 0 ? 'green' : 'red');
+  document.getElementById('stat-pnl-sub').textContent = (s.pnlPct >= 0 ? '+' : '') + s.pnlPct.toFixed(2) + '% return';
+  document.getElementById('stat-bigwin').textContent = s.bigWin ? fmt(s.bigWin) : '₱0';
+  document.getElementById('stat-bigwin-sub').textContent = s.bigWinDesc || 'No wins yet';
+  document.getElementById('stat-bigloss').textContent = s.bigLoss ? fmt(s.bigLoss) : '₱0';
+  document.getElementById('stat-bigloss-sub').textContent = s.bigLossDesc || 'No losses yet';
+  document.getElementById('stat-winrate').textContent = s.winRate.toFixed(1) + '%';
+  document.getElementById('stat-wins').textContent = s.wins;
+  document.getElementById('stat-losses').textContent = s.losses;
+  document.getElementById('stat-avgwin').textContent = fmt(s.avgWin);
+  document.getElementById('stat-avgloss').textContent = fmt(s.avgLoss);
+  document.getElementById('stat-wagered').textContent = fmt(s.totalWon + s.totalLost);
+  document.getElementById('stat-totalloss').textContent = fmt(s.totalLost);
+  document.getElementById('stat-totalwin').textContent = fmt(s.totalWon);
+  renderCalendar();
+}
+
+function changeMonth(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-month-label').textContent = MONTHS[calMonth] + ' ' + calYear;
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  // Build day map
+  const dayMap = {};
+  state.entries.forEach(e => {
+    const d = new Date(e.date + 'T00:00:00');
+    if (d.getFullYear() === calYear && d.getMonth() === calMonth) {
+      const day = d.getDate();
+      if (!dayMap[day]) dayMap[day] = { won: 0, lost: 0, entries: [] };
+      if (e.result === 'win') dayMap[day].won += e.amount;
+      else dayMap[day].lost += e.amount;
+      dayMap[day].entries.push(e);
+    }
+  });
+
+  // Monthly summary
+  let mWon = 0, mLost = 0, mDays = 0;
+  Object.values(dayMap).forEach(d => { mWon += d.won; mLost += d.lost; mDays++; });
+  const mPnl = mWon - mLost;
+  const mpEl = document.getElementById('cal-month-pnl');
+  mpEl.textContent = (mPnl >= 0 ? '+' : '−') + fmt(mPnl);
+  mpEl.style.color = mPnl > 0 ? 'var(--win)' : mPnl < 0 ? 'var(--loss)' : 'var(--text)';
+  document.getElementById('cal-month-won').textContent = fmt(mWon);
+  document.getElementById('cal-month-lost').textContent = fmt(mLost);
+  document.getElementById('cal-month-days').textContent = mDays;
+
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+
+  for (let i = 0; i < firstDay; i++) {
+    const e = document.createElement('div');
+    e.className = 'cal-cell empty';
+    grid.appendChild(e);
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const cell = document.createElement('div');
+    const dateStr = calYear + '-' + String(calMonth + 1).padStart(2,'0') + '-' + String(day).padStart(2,'0');
+    const isToday = dateStr === todayStr;
+    const data = dayMap[day];
+
+    let cls = 'cal-cell' + (isToday ? ' today-cell' : '');
+
+    const dateDiv = document.createElement('div');
+    dateDiv.className = 'cal-date';
+    dateDiv.textContent = day;
+    cell.appendChild(dateDiv);
+
+    if (data) {
+      const pnl = data.won - data.lost;
+      const hasWin = data.won > 0, hasLoss = data.lost > 0;
+
+      if (hasWin && !hasLoss) cls += ' has-win';
+      else if (hasLoss && !hasWin) cls += ' has-loss';
+      else cls += (pnl >= 0 ? ' has-win' : ' has-loss');
+
+      const pnlDiv = document.createElement('div');
+      if (hasWin && !hasLoss) {
+        pnlDiv.className = 'cal-pnl win';
+        pnlDiv.textContent = '+' + fmt(data.won);
+      } else if (hasLoss && !hasWin) {
+        pnlDiv.className = 'cal-pnl loss';
+        pnlDiv.textContent = '−' + fmt(data.lost);
+      } else {
+        pnlDiv.className = 'cal-pnl';
+        pnlDiv.innerHTML =
+          (hasWin  ? `<span style="color:#6dffc0;font-size:.74rem">+${fmt(data.won)}</span><br>` : '') +
+          (hasLoss ? `<span style="color:#ff8fa6;font-size:.74rem">−${fmt(data.lost)}</span>` : '');
+      }
+      cell.appendChild(pnlDiv);
+
+      if (data.entries.length) {
+        const cnt = document.createElement('div');
+        cnt.className = 'cal-bet-count';
+        cnt.textContent = data.entries.length + (data.entries.length === 1 ? ' bet' : ' bets');
+        cell.appendChild(cnt);
+      }
+
+      cell.addEventListener('click', () => openDayModal(dateStr, data));
+    }
+
+    cell.className = cls;
+    grid.appendChild(cell);
+  }
+}
+
+function openDayModal(dateStr, data) {
+  const d = new Date(dateStr + 'T00:00:00');
+  document.getElementById('modal-date-title').textContent =
+    d.toLocaleDateString('en-PH', { weekday:'short', year:'numeric', month:'long', day:'numeric' });
+
+  const pnl = data.won - data.lost;
+  const body = document.getElementById('modal-body');
+  body.innerHTML = `
+    <div class="modal-summary">
+      <div class="modal-sum-item">
+        <span class="modal-sum-label">Day P&L</span>
+        <span class="modal-sum-val" style="color:${pnl >= 0 ? 'var(--win)' : 'var(--loss)'}">${pnl >= 0 ? '+' : '−'}${fmt(pnl)}</span>
+      </div>
+      <div class="modal-sum-item">
+        <span class="modal-sum-label">Won</span>
+        <span class="modal-sum-val" style="color:var(--win)">${fmt(data.won)}</span>
+      </div>
+      <div class="modal-sum-item">
+        <span class="modal-sum-label">Lost</span>
+        <span class="modal-sum-val" style="color:var(--loss)">${fmt(data.lost)}</span>
+      </div>
+    </div>
+    ${data.entries.map(e => `
+      <div class="modal-entry">
+        <div>
+          <div class="modal-entry-desc">${e.desc}</div>
+          <div class="modal-entry-type">${e.type}</div>
+        </div>
+        <div class="modal-right">
+          <span class="modal-amt" style="color:${e.result==='win'?'var(--win)':'var(--loss)'}">${e.result==='win'?'+':'−'}${fmt(e.amount)}</span>
+          <button class="modal-del" onclick="deleteEntry(${e.id})">✕</button>
+        </div>
+      </div>`).join('')}
+  `;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('modal-overlay'))
+    document.getElementById('modal-overlay').classList.remove('open');
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast toast-' + type + ' show';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+</script>
+</body>
+</html>
